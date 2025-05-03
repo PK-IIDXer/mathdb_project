@@ -204,4 +204,133 @@ class InferenceRulePremise(models.Model):
     unique_together = [('inference_rule', 'sequence')]
     verbose_name = "推論規則仮定"
     verbose_name_plural = "推論規則仮定"
-    
+
+class Theorem(models.Model):
+  """定理"""
+  id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+  name = models.TextField(max_length=255, verbose_name="定理名", blank=True, null=True)
+  meaning = models.TextField(verbose_name="定理の意味", blank=True, null=True)
+  conclusion = models.ForeignKey(
+    LogicalFormula,
+    on_delete=models.PROTECT,
+    verbose_name="結論論理式ID")
+  assumptions = models.ManyToManyField(
+    LogicalFormula,
+    verbose_name="仮定論理式ID",
+    blank=True,
+    null=True)
+  created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
+  updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
+  
+  def __str__(self):
+    return self.name
+
+  class Meta:
+    verbose_name = "定理"
+    verbose_name_plural = "定理"
+
+class Proof(models.Model):
+  """証明"""
+  theorem = models.ForeignKey(
+    Theorem,
+    on_delete=models.CASCADE,
+    verbose_name="定理ID")
+  sequence = models.IntegerField(verbose_name="連番")
+  created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
+  updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
+
+  def __str__(self):
+    return f"Proof {self.sequence} for '{self.theorem.name}'"
+
+  class Meta:
+    unique_together = [('theorem', 'sequence')]
+    verbose_name = "証明"
+    verbose_name_plural = "証明"
+
+class ProofInference(models.Model):
+  """証明推論"""
+  proof = models.ForeignKey(
+    Proof,
+    on_delete=models.CASCADE,
+    verbose_name="証明ID")
+  sequence = models.IntegerField(verbose_name="連番")
+  inference_rule = models.ForeignKey(
+    InferenceRule,
+    on_delete=models.PROTECT,
+    verbose_name="推論規則ID")
+  conclusion_formula = models.ForeignKey(
+    LogicalFormula,
+    on_delete=models.PROTECT,
+    verbose_name="結論論理式ID")
+  from_nodes = models.ManyToManyField(
+    'self',
+    symmetrical=False,
+    related_name='to_nodes',
+    blank=True,
+    null=True,
+    verbose_name="先行する推論ステップ")
+  created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
+  updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
+
+  def __str__(self):
+    return f"Proof {self.proof.sequence} Step {self.sequence}: Rule '{self.inference_rule.name}'"
+
+  class Meta:
+    unique_together = [('proof', 'sequence')]
+    verbose_name = "証明推論"
+    verbose_name_plural = "証明推論"
+
+class ProofInferenceArgument(models.Model):
+  """証明推論引数"""
+  proof_inference = models.ForeignKey(
+    ProofInference,
+    on_delete=models.CASCADE,
+    verbose_name="証明推論ID")
+  sequence = models.IntegerField(verbose_name="連番")
+  argument_formula = models.ForeignKey(
+    LogicalFormula,
+    on_delete=models.PROTECT,
+    verbose_name="引数論理式ID")
+  created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
+  updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
+
+  def __str__(self):
+    return f"Argument {self.sequence} for Proof {self.proof_inference.proof.sequence} Step {self.proof_inference.sequence}: {self.argument_formula.representation}"
+
+  class Meta:
+    unique_together = [('proof_inference', 'sequence')]
+    verbose_name = "証明推論引数"
+    verbose_name_plural = "証明推論引数"
+
+class ProofUnresolvedAssumption(models.Model):
+  """証明未解消仮定"""
+  proof = models.ForeignKey(
+    Proof,
+    on_delete=models.CASCADE,
+    verbose_name="証明ID")
+  sequence = models.IntegerField(verbose_name="連番")
+  formula = models.ForeignKey(
+    LogicalFormula,
+    on_delete=models.PROTECT,
+    verbose_name="仮定論理式ID")
+  added_by_inference = models.ForeignKey(
+    ProofInference,
+    on_delete=models.CASCADE,
+    verbose_name="導入した推論ステップ")
+  resolved_by_inference = models.ForeignKey(
+    ProofInference,
+    on_delete=models.CASCADE,
+    blank=True,
+    null=True,
+    verbose_name="解消した推論ステップ")
+  created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
+  updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
+  
+  def __str__(self):
+    status = "Resolved" if self.resolved_by_inference else "Unresolved"
+    return f"Assumption {self.sequence} ({status}) in Proof {self.proof.sequence}"
+
+  class Meta:
+    unique_together = [('proof', 'sequence')]
+    verbose_name = "証明未解消仮定"
+    verbose_name_plural = "証明未解消仮定"
