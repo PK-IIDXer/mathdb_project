@@ -217,8 +217,7 @@ class Theorem(models.Model):
   assumptions = models.ManyToManyField(
     LogicalFormula,
     verbose_name="仮定論理式ID",
-    blank=True,
-    null=True)
+    blank=True)
   created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
   updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
   
@@ -267,7 +266,6 @@ class ProofInference(models.Model):
     symmetrical=False,
     related_name='to_nodes',
     blank=True,
-    null=True,
     verbose_name="先行する推論ステップ")
   created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
   updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
@@ -319,7 +317,7 @@ class ProofUnresolvedAssumption(models.Model):
     verbose_name="導入した推論ステップ")
   resolved_by_inference = models.ForeignKey(
     ProofInference,
-    on_delete=models.CASCADE,
+    on_delete=models.PROTECT,
     blank=True,
     null=True,
     verbose_name="解消した推論ステップ")
