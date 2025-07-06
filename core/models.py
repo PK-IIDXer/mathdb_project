@@ -2,16 +2,18 @@ from django.db import models
 import uuid
 from django.core.exceptions import ValidationError
 
+
 class FormulaType(models.Model):
   """論理式種類（項・命題）"""
   name = models.CharField(max_length=100, unique=True, verbose_name="種類名")
 
   def __str__(self):
     return self.name
-      
+
   class Meta:
     verbose_name = "論理式種類"
     verbose_name_plural = "論理式種類"
+
 
 class SymbolType(models.Model):
   """記号種類（例：自由変数、関数記号、述語記号…）"""
@@ -28,7 +30,8 @@ class SymbolType(models.Model):
   class Meta:
     verbose_name = "記号種類"
     verbose_name_plural = "記号種類"
-        
+
+
 class Symbol(models.Model):
   """個々の数学記号(例：+, =, x, P)"""
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -71,6 +74,7 @@ class Symbol(models.Model):
     verbose_name = "記号"
     verbose_name_plural = "記号"
 
+
 class LogicalFormula(models.Model):
   """論理式"""
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -99,6 +103,7 @@ class LogicalFormula(models.Model):
     verbose_name = "論理式"
     verbose_name_plural = "論理式"
 
+
 class LogicalFormulaSymbol(models.Model):
   """論理式記号列"""
   logical_formula = models.ForeignKey(
@@ -119,6 +124,7 @@ class LogicalFormulaSymbol(models.Model):
     verbose_name = "論理式記号列"
     verbose_name_plural = "論理式記号列"
 
+
 class InferenceRule(models.Model):
   """推論規則(例：modus ponens, ∧導入, …)"""
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -136,6 +142,7 @@ class InferenceRule(models.Model):
   class Meta:
     verbose_name = "推論規則"
     verbose_name_plural = "推論規則"
+
 
 class InferenceRuleArgument(models.Model):
   """推論規則引数"""
@@ -156,6 +163,7 @@ class InferenceRuleArgument(models.Model):
     verbose_name = "推論規則引数"
     verbose_name_plural = "推論規則引数"
 
+
 class InferenceRulePremise(models.Model):
   """推論規則仮定"""
   inference_rule = models.ForeignKey(
@@ -166,10 +174,12 @@ class InferenceRulePremise(models.Model):
   logical_formula = models.ForeignKey(
     LogicalFormula,
     on_delete=models.PROTECT,
+    related_name='inference_rule_premises_as_logical_formula',
     verbose_name="論理式ID")
   solvable_proposition = models.ForeignKey(
     LogicalFormula,
     on_delete=models.PROTECT,
+    related_name='inference_rule_premises_as_solvable_proposition',
     blank=True,
     null=True,
     verbose_name="解消可能命題ID")
@@ -205,6 +215,7 @@ class InferenceRulePremise(models.Model):
     verbose_name = "推論規則仮定"
     verbose_name_plural = "推論規則仮定"
 
+
 class Theorem(models.Model):
   """定理"""
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -213,9 +224,11 @@ class Theorem(models.Model):
   conclusion = models.ForeignKey(
     LogicalFormula,
     on_delete=models.PROTECT,
+    related_name='theorems_as_conclusion',
     verbose_name="結論論理式ID")
   assumptions = models.ManyToManyField(
     LogicalFormula,
+    related_name='theorems_as_assumption',
     verbose_name="仮定論理式ID",
     blank=True)
   created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
@@ -227,6 +240,7 @@ class Theorem(models.Model):
   class Meta:
     verbose_name = "定理"
     verbose_name_plural = "定理"
+
 
 class Proof(models.Model):
   """証明"""
@@ -245,6 +259,7 @@ class Proof(models.Model):
     unique_together = [('theorem', 'sequence')]
     verbose_name = "証明"
     verbose_name_plural = "証明"
+
 
 class ProofInference(models.Model):
   """証明推論"""
@@ -278,6 +293,7 @@ class ProofInference(models.Model):
     verbose_name = "証明推論"
     verbose_name_plural = "証明推論"
 
+
 class ProofInferenceArgument(models.Model):
   """証明推論引数"""
   proof_inference = models.ForeignKey(
@@ -300,6 +316,7 @@ class ProofInferenceArgument(models.Model):
     verbose_name = "証明推論引数"
     verbose_name_plural = "証明推論引数"
 
+
 class ProofUnresolvedAssumption(models.Model):
   """証明未解消仮定"""
   proof = models.ForeignKey(
@@ -314,10 +331,12 @@ class ProofUnresolvedAssumption(models.Model):
   added_by_inference = models.ForeignKey(
     ProofInference,
     on_delete=models.CASCADE,
+    related_name='unresolved_assumptions_added',
     verbose_name="導入した推論ステップ")
   resolved_by_inference = models.ForeignKey(
     ProofInference,
     on_delete=models.PROTECT,
+    related_name='unresolved_assumptions_resolved',
     blank=True,
     null=True,
     verbose_name="解消した推論ステップ")

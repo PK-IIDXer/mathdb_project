@@ -1,0 +1,16 @@
+[
+  {
+    "model": "core.formulatype",
+    "pk": 1,
+    "fields": {
+      "name": "term"
+    }
+  },
+  {
+    "model": "core.formulatype",
+    "pk": 2,
+    "fields": {
+      "name": "proposition"
+    }
+  }
+] 

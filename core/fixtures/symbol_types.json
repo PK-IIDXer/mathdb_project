@@ -1,0 +1,56 @@
+[
+  {
+    "model": "core.symboltype",
+    "pk": 1,
+    "fields": {
+      "name": "free variable",
+      "formula_type": 1,
+      "is_quantifier": false
+    }
+  },
+  {
+    "model": "core.symboltype",
+    "pk": 2,
+    "fields": {
+      "name": "function",
+      "formula_type": 1,
+      "is_quantifier": false
+    }
+  },
+  {
+    "model": "core.symboltype",
+    "pk": 3,
+    "fields": {
+      "name": "logic",
+      "formula_type": 2,
+      "is_quantifier": false
+    }
+  },
+  {
+    "model": "core.symboltype",
+    "pk": 4,
+    "fields": {
+      "name": "predicate",
+      "formula_type": 2,
+      "is_quantifier": false
+    }
+  },
+  {
+    "model": "core.symboltype",
+    "pk": 5,
+    "fields": {
+      "name": "propositional quantifier",
+      "formula_type": 2,
+      "is_quantifier": true
+    }
+  },
+  {
+    "model": "core.symboltype",
+    "pk": 6,
+    "fields": {
+      "name": "term quantifier",
+      "formula_type": 1,
+      "is_quantifier": true
+    }
+  }
+] 
